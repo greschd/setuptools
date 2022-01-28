@@ -876,6 +876,25 @@ class TestOptions:
         with get_dist(tmpdir) as dist:
             assert dist.cmdclass == {'customcmd': CustomCmd}
 
+    def test_cmdclass_nested(self, tmpdir):
+        class CustomCmd(Command):
+            pass
+
+        m = types.ModuleType('custom_build.nested', 'test package')
+
+        m.__dict__['CustomCmd'] = CustomCmd
+
+        sys.modules['custom_build.nested'] = m
+
+        fake_env(
+            tmpdir,
+            '[options]\n' 'cmdclass =\n'
+            '    customcmd = custom_build.nested.CustomCmd\n',
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.cmdclass == {'customcmd': CustomCmd}
+
 
 saved_dist_init = _Distribution.__init__
 
